@@ -1,3 +1,4 @@
+// Class for each note
 class note {
   constructor(title, description, dueDate, priority, content, done) {
     this.title = title;
@@ -20,7 +21,8 @@ class note {
   }
 }
 
-class project {
+// Class for each project
+export class project {
   constructor(name) {
     this.name = name;
     this.notes = [];
