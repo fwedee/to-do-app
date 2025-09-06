@@ -1,33 +1,42 @@
 import { project } from "./logic";
-
-import styles from "./styles.css";
+import "./styles.css";
 
 const content = document.getElementById("content");
 
+let currentProject = new project("My To-Do Project");
+
+// ---------- UI BUILDERS ----------
 function createProjectPage() {
-  createHeaderProjectPage(test);
-  createListProjectPage(test);
+  content.innerHTML = ""; // clear page
+
+  createHeaderProjectPage(currentProject);
+  createListProjectPage(currentProject);
 }
 
 const createHeaderProjectPage = (project) => {
   const header = document.createElement("header");
 
   const title = document.createElement("h2");
-  title.innerText = `${project.name}`;
+  title.innerText = project.name;
   header.appendChild(title);
 
   const inputForm = document.createElement("input");
-  inputForm.setAttribute("id", "myInput");
-  inputForm.setAttribute("placeholder", "Title...");
-  inputForm.setAttribute("type", "text");
+  inputForm.id = "myInput";
+  inputForm.placeholder = "Title...";
+  inputForm.type = "text";
   header.appendChild(inputForm);
 
   const addButton = document.createElement("button");
-  addButton.addEventListener("click", () => {
-    createElement();
-  });
   addButton.innerText = "Add";
   addButton.classList.add("addBtn");
+  addButton.addEventListener("click", () => {
+    const value = inputForm.value.trim();
+    if (value) {
+      currentProject.addNote(value, "", "", "", "", false);
+      inputForm.value = "";
+      createProjectPage();
+    }
+  });
   header.appendChild(addButton);
 
   content.appendChild(header);
@@ -40,69 +49,51 @@ const createListProjectPage = (project) => {
   const list = document.createElement("ul");
   list.classList.add("noteList");
 
-  project.notes.forEach((note) => {
+  project.notes.forEach((note, index) => {
     const noteElement = document.createElement("li");
-    noteElement.innerText = `${note.title}`;
+    noteElement.innerText = note.title;
     noteElement.classList.add("note");
 
     if (note.done) {
       noteElement.classList.add("checked");
     }
 
-    list.appendChild(noteElement);
+    // Toggle note done state
+    noteElement.addEventListener("click", () => {
+      note.done = !note.done;
+      createProjectPage();
+    });
 
+    // Close button
     const listBtn = document.createElement("button");
     listBtn.innerText = "\u00D7";
     listBtn.classList.add("close");
-    listBtn.addEventListener("click", () => {
-      deleteElement(listBtn);
+    listBtn.addEventListener("click", (e) => {
+      e.stopPropagation(); // prevent toggle
+      currentProject.notes.splice(index, 1);
+      createProjectPage();
     });
 
-    list.appendChild(listBtn);
+    // Wrap note + button
+    const wrapper = document.createElement("div");
+    wrapper.style.display = "flex";
+    wrapper.style.alignItems = "center";
+
+    wrapper.appendChild(noteElement);
+    wrapper.appendChild(listBtn);
+
+    const wrapperItem = document.createElement("li");
+    wrapperItem.style.display = "flex";
+    wrapperItem.style.width = "100%";
+    wrapperItem.appendChild(noteElement);
+    wrapperItem.appendChild(listBtn);
+
+    list.appendChild(wrapperItem);
   });
 
   listContainer.appendChild(list);
-
   content.appendChild(listContainer);
 };
 
-function createElement() {
-  let input = document.getElementById("myInput").value;
-
-  const listContainer = document.querySelector(".noteList");
-
-  const noteElement = document.createElement("li");
-  noteElement.innerText = `${input}`;
-  noteElement.classList.add("note");
-
-  listContainer.appendChild(noteElement);
-
-  const listBtn = document.createElement("button");
-  listBtn.innerText = "\u00D7";
-  listBtn.classList.add("close");
-  listBtn.addEventListener("click", () => {
-    deleteElement();
-  });
-
-  listContainer.appendChild(listBtn);
-}
-
-function deleteElement(element) {
-  const nextNote = element.previousElementSibling;
-  nextNote.remove();
-  element.remove();
-}
-
-let test = new project("test");
-
-test.addNote("test1", "WoW", "2020", "important", "adadadadda", false);
-test.addNote("test1", "WoW", "2020", "important", "adadadadda", false);
-
-test.addNote("test1", "WoW", "2020", "important", "adadadadda", false);
-test.addNote("test1", "WoW", "2020", "important", "adadadadda", false);
-test.addNote("test1", "WoW", "2020", "important", "adadadadda", false);
-test.addNote("test1", "WoW", "2020", "important", "adadadadda", false);
-
-test.listNotes();
-
+// ---------- INIT ----------
 createProjectPage();
